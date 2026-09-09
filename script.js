@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             .select('*')
             .eq('email', email)
             .eq('password', pass)
-            .single();
+            .maybeSingle();
             
         if (data) {
             err.textContent = '';
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const err = document.getElementById('regError');
 
         // Check if exists
-        const { data: existing } = await supabaseClient.from('users').select('id').eq('email', email).single();
+        const { data: existing } = await supabaseClient.from('users').select('id').eq('email', email).maybeSingle();
         if (existing) {
             err.textContent = 'Este email já está cadastrado.';
             return;
@@ -495,7 +495,7 @@ window.promoteUser = async function(userId) {
 }
 
 window.editEvent = async function(eventId) {
-    const { data: ev } = await supabaseClient.from('events').select('*').eq('id', eventId).single();
+    const { data: ev } = await supabaseClient.from('events').select('*').eq('id', eventId).maybeSingle();
     if(ev) {
         document.getElementById('evTitle').value = ev.title;
         document.getElementById('evDate').value = ev.date;
@@ -510,7 +510,7 @@ window.editEvent = async function(eventId) {
 }
 
 window.toggleEventStatus = async function(eventId) {
-    const { data: ev } = await supabaseClient.from('events').select('status').eq('id', eventId).single();
+    const { data: ev } = await supabaseClient.from('events').select('status').eq('id', eventId).maybeSingle();
     if(ev) {
         const newStatus = ev.status === 'cancelled' ? 'active' : 'cancelled';
         await supabaseClient.from('events').update({ status: newStatus }).eq('id', eventId);
