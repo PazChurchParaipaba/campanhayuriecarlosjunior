@@ -65,8 +65,8 @@ body {
 
 .landing-section { padding: 80px 48px; max-width: 1200px; margin: 0 auto; width: 100%; }
 .section-title { text-align: center; margin-bottom: 48px; }
-.section-title h2 { font-size: 2.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
-.section-title p { font-size: 1.1rem; color: var(--text-muted); }
+.section-title h2 { font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 8px; }
+.section-title p { font-size: 1.1rem; color: rgba(255,255,255,0.9); }
 
 /* Events */
 .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
@@ -138,7 +138,7 @@ textarea { resize: vertical; }
 .full-width { width: 100%; }
 
 /* --- CITIZEN VIEW --- */
-.landing-page { padding: 0; min-height: 100vh; display: flex; flex-direction: column; background: transparent; }
+.landing-page { padding: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; background: transparent; }
 .landing-header { padding: 24px 48px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
 .logo-container { display: flex; align-items: center; gap: 12px; }
 .logo-icon { font-size: 32px; color: white; }
