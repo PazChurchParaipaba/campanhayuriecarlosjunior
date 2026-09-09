@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central de Campanha</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- LANDING VIEW (Página Inicial Pública) -->
+    <div id="landingView" class="view-container active landing-layout">
+        <!-- Landing Navbar -->
+        <nav class="landing-nav">
+            <div class="landing-brand">
+                <img src="TIME%20DO%20AQUINO.png" alt="Time do Aquino">
+            </div>
+            <div class="landing-links">
+                <a href="#eventos">Eventos e Novidades</a>
+                <button class="primary-btn" id="btnGoToLogin"><i class="ph ph-user"></i> Entrar / Cadastrar</button>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <header class="landing-hero">
+            <div class="hero-content">
+                <div class="hero-logos" style="display: flex; gap: 24px; justify-content: center; margin-bottom: 24px; align-items: center;">
+                    <img src="LOGO%20CARLOS%20JUNIOR.png" alt="Carlos Junior" style="height: 80px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
+                    <img src="%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png" alt="Fechado com Yuri do Paredão" style="height: 80px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
+                </div>
+                <h1>A mudança começa<br>com a nossa união.</h1>
+                <p>Faça parte deste movimento. Acompanhe nossos eventos, conheça as propostas e participe ativamente da construção de uma cidade melhor.</p>
+                <div class="hero-actions">
+                    <button class="primary-btn hero-btn" onclick="document.getElementById('btnGoToLogin').click()">Junte-se à Campanha</button>
+                    <a href="#eventos" class="secondary-btn hero-btn" style="background:transparent; color:white; border-color:white;">Ver Agenda</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Events & News Section -->
+        <section id="eventos" class="landing-section">
+            <div class="section-title">
+                <h2>Eventos e Novidades</h2>
+                <p>Acompanhe o que está acontecendo na campanha.</p>
+            </div>
+            
+            <!-- Rendered via JS -->
+            <div class="events-grid" id="landingEventsGrid">
+                <!-- Vazio inicialmente, populado pelo banco de dados (localStorage) -->
+            </div>
+        </section>
+        
+        <footer class="landing-footer">
+            <p>&copy; 2026 Central de Campanha. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <!-- AUTHENTICATION VIEW -->
+    <div id="authView" class="view-container">
+        <div class="auth-image-side" style="background-image: url('ROSTO-JUNTOS.png');"></div>
+        <div class="auth-form-side">
+            <div class="auth-wrapper">
+                <button class="back-btn" id="btnBackToLanding"><i class="ph ph-arrow-left"></i> Voltar ao Início</button>
+                <div class="auth-box">
+                <div class="auth-header">
+                    <img src="TIME%20DO%20AQUINO.png" alt="Time do Aquino" style="height: 60px; margin-bottom: 16px;">
+                    <h2>Bem-vindo à Campanha</h2>
+                    <p>Faça login ou cadastre-se para participar</p>
+                </div>
+                
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Login</button>
+                    <button class="auth-tab" data-tab="register">Cadastro</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form active">
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <input type="email" id="loginEmail" required placeholder="seu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <input type="password" id="loginPassword" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="primary-btn full-width">Entrar</button>
+                    <div class="auth-error" id="loginError"></div>
+                </form>
+
+                <!-- Register Form -->
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label>Nome Completo</label>
+                        <input type="text" id="regName" required placeholder="João da Silva">
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <input type="email" id="regEmail" required placeholder="seu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone / WhatsApp</label>
+                        <input type="tel" id="regPhone" required placeholder="(11) 99999-9999">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <input type="password" id="regPassword" required placeholder="Crie uma senha">
+                    </div>
+                    <button type="submit" class="primary-btn full-width">Criar Conta</button>
+                    <div class="auth-error" id="regError"></div>
+                </form>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- CITIZEN VIEW (Área do Eleitor) -->
+    <div id="citizenView" class="view-container">
+        <header class="top-header">
+            <div class="brand">
+                <img src="TIME%20DO%20AQUINO.png" alt="Logo" style="height: 30px;">
+                <h2>Portal do Cidadão</h2>
+            </div>
+            <div class="header-actions">
+                <div class="user-chip">
+                    <i class="ph ph-user"></i> <span id="citName">Usuário</span>
+                </div>
+                <button class="secondary-btn logout-btn"><i class="ph ph-sign-out"></i> Sair</button>
+            </div>
+        </header>
+
+        <main class="citizen-main">
+            <div class="citizen-welcome">
+                <h1>Sua voz importa!</h1>
+                <p>Faça sugestões para o seu bairro ou peça materiais da campanha para apoiar.</p>
+                <img src="%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png" alt="Fechado com Yuri" style="height: 60px; margin-top: 24px;">
+            </div>
+
+            <div class="citizen-actions-grid">
+                <!-- Register Demand -->
+                <div class="action-card">
+                    <div class="card-header">
+                        <div class="icon-wrap purple"><i class="ph ph-megaphone"></i></div>
+                        <h3>Registrar Demanda</h3>
+                    </div>
+                    <form id="demandForm">
+                        <div class="form-group">
+                            <label>Bairro</label>
+                            <input type="text" id="demandBairro" required placeholder="Seu bairro">
+                        </div>
+                        <div class="form-group">
+                            <label>Categoria</label>
+                            <select id="demandCategoria" required>
+                                <option value="Infraestrutura">Infraestrutura</option>
+                                <option value="Saúde">Saúde</option>
+                                <option value="Educação">Educação</option>
+                                <option value="Segurança">Segurança</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Descrição do Problema/Sugestão</label>
+                            <textarea id="demandDescricao" rows="3" required placeholder="Descreva o que precisa ser melhorado..."></textarea>
+                        </div>
+                        <button type="submit" class="primary-btn full-width">Enviar Demanda</button>
+                    </form>
+                </div>
+
+                <!-- Request Material -->
+                <div class="action-card">
+                    <div class="card-header">
+                        <div class="icon-wrap orange"><i class="ph ph-package"></i></div>
+                        <h3>Pedir Material Físico</h3>
+                    </div>
+                    <form id="materialForm">
+                        <div class="form-group">
+                            <label>Tipo de Material</label>
+                            <select id="matTipo" required>
+                                <option value="Adesivo Perfurado (Carro)">Adesivo Perfurado (Carro)</option>
+                                <option value="Adesivo de Para-choque">Adesivo de Para-choque</option>
+                                <option value="Bandeira">Bandeira</option>
+                                <option value="Praguinha/Santinho">Praguinha/Santinho</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantidade Estimada</label>
+                            <input type="number" id="matQtd" required min="1" max="100" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Endereço de Entrega/Retirada</label>
+                            <input type="text" id="matEndereco" required placeholder="Endereço completo">
+                        </div>
+                        <button type="submit" class="primary-btn full-width">Solicitar Material</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Citizen History -->
+            <div class="history-section">
+                <h3>Seu Histórico</h3>
+                <div class="history-list" id="citizenHistoryList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ADMIN VIEW (Liderança / Master) -->
+    <div id="adminView" class="view-container app-container">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="TIME%20DO%20AQUINO.png" alt="Logo" style="height: 35px;">
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-target="dashboard">
+                    <i class="ph ph-squares-four"></i> Painel Geral
+                </a>
+                <a href="#" class="nav-item" data-target="eventosAdmin">
+                    <i class="ph ph-calendar-plus"></i> Gestão de Eventos
+                </a>
+                <a href="#" class="nav-item" data-target="demandasAdmin">
+                    <i class="ph ph-megaphone"></i> Demandas Recebidas
+                </a>
+                <a href="#" class="nav-item" data-target="pedidosAdmin">
+                    <i class="ph ph-package"></i> Pedidos de Material
+                </a>
+                <a href="#" class="nav-item" data-target="agendaAdmin">
+                    <i class="ph ph-calendar"></i> Agenda Interna
+                </a>
+                <a href="#" class="nav-item" data-target="gerador">
+                    <i class="ph ph-image"></i> Gerador WhatsApp
+                </a>
+                <a href="#" class="nav-item admin-only" data-target="usuarios">
+                    <i class="ph ph-users"></i> Gestão de Usuários
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar" id="adminAvatar">A</div>
+                    <div class="user-details">
+                        <span class="name" id="adminName">Admin</span>
+                        <span class="role" id="adminRole">Master</span>
+                    </div>
+                </div>
+                <button class="icon-btn logout-btn" style="margin-left: auto;" title="Sair"><i class="ph ph-sign-out"></i></button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header" style="display: flex; align-items: center; padding: 0 24px; border-bottom: 1px solid var(--border); height: 72px;">
+                <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" style="display:none; margin-right: 12px; color: var(--text-main); font-size: 24px;"><i class="ph ph-list"></i></button>
+                <div class="search-bar" style="display: flex; align-items: center; gap: 8px; background: var(--bg-main); padding: 8px 16px; border-radius: var(--radius-md); border: 1px solid var(--border); flex: 1;">
+                    <i class="ph ph-magnifying-glass" style="color: var(--text-muted)"></i>
+                    <input type="text" placeholder="Buscar..." style="border: none; background: transparent; outline: none; width: 100%;">
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="page-section active">
+                    <div class="section-header">
+                        <h1>Visão Geral da Campanha</h1>
+                        <p>Acompanhe os resultados baseados nos dados reais recebidos.</p>
+                    </div>
+
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-icon blue"><i class="ph ph-users"></i></div>
+                            <div class="kpi-info">
+                                <h3>Total de Usuários</h3>
+                                <div class="kpi-value" id="kpiUsers">0</div>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon purple"><i class="ph ph-megaphone"></i></div>
+                            <div class="kpi-info">
+                                <h3>Demandas Registradas</h3>
+                                <div class="kpi-value" id="kpiDemands">0</div>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon orange"><i class="ph ph-package"></i></div>
+                            <div class="kpi-info">
+                                <h3>Materiais Solicitados</h3>
+                                <div class="kpi-value" id="kpiMaterials">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-card secondary-chart">
+                            <div class="card-header">
+                                <h3>Demandas por Categoria</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="demandsChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="recent-activity">
+                            <div class="card-header">
+                                <h3>Últimas Interações</h3>
+                            </div>
+                            <div class="activity-list" id="adminActivityList">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Gestão de Eventos Admin -->
+                <section id="eventosAdmin" class="page-section">
+                    <div class="section-header">
+                        <h1>Gestão de Eventos / Novidades</h1>
+                        <p>Cadastre eventos aqui para que apareçam na página inicial pública.</p>
+                    </div>
+                    
+                    <div class="charts-grid">
+                        <div class="generator-form">
+                            <form id="createEventForm">
+                                <div class="form-group">
+                                    <label>Título do Evento/Novidade</label>
+                                    <input type="text" id="evTitle" required placeholder="Ex: Grande Caminhada na Zona Sul">
+                                </div>
+                                <div class="form-group">
+                                    <label>Data</label>
+                                    <input type="date" id="evDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Local / Horário</label>
+                                    <input type="text" id="evLocation" required placeholder="Ex: Praça Central às 09:00">
+                                </div>
+                                <div class="form-group">
+                                    <label>Descrição Opcional</label>
+                                    <textarea id="evDesc" rows="2" placeholder="Informações adicionais..."></textarea>
+                                </div>
+                                <button type="submit" class="primary-btn full-width"><i class="ph ph-plus"></i> Adicionar Evento</button>
+                            </form>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Título</th>
+                                        <th>Data</th>
+                                        <th>Local</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eventosTbody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Demandas Admin -->
+                <section id="demandasAdmin" class="page-section">
+                    <div class="section-header">
+                        <h1>Demandas da População</h1>
+                        <p>Visualize e gerencie os problemas relatados.</p>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Cidadão</th>
+                                    <th>Bairro</th>
+                                    <th>Categoria</th>
+                                    <th>Descrição</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="demandasTbody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Pedidos Admin -->
+                <section id="pedidosAdmin" class="page-section">
+                    <div class="section-header">
+                        <h1>Pedidos de Material Físico</h1>
+                        <p>Visualize quem solicitou material.</p>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Cidadão</th>
+                                    <th>Tipo</th>
+                                    <th>Qtd</th>
+                                    <th>Endereço</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pedidosTbody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Agenda Interna Admin -->
+                <section id="agendaAdmin" class="page-section">
+                    <div class="section-header">
+                        <h1>Agenda de Controle Interno</h1>
+                        <p>Gerencie reuniões internas da equipe e lideranças.</p>
+                    </div>
+                    
+                    <div class="charts-grid">
+                        <div class="generator-form">
+                            <form id="createMeetingForm">
+                                <div class="form-group">
+                                    <label>Pauta da Reunião</label>
+                                    <input type="text" id="mtgTitle" required placeholder="Ex: Alinhamento de Campanha">
+                                </div>
+                                <div class="form-group">
+                                    <label>Data</label>
+                                    <input type="date" id="mtgDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Horário</label>
+                                    <input type="time" id="mtgTime" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Participantes / Local</label>
+                                    <input type="text" id="mtgLocation" required placeholder="Ex: Comitê Central / Todos">
+                                </div>
+                                <button type="submit" class="primary-btn full-width"><i class="ph ph-plus"></i> Agendar Reunião</button>
+                            </form>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pauta</th>
+                                        <th>Data / Hora</th>
+                                        <th>Local / Partic.</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reunioesTbody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Gestão Usuários Admin (Master Only) -->
+                <section id="usuarios" class="page-section">
+                    <div class="section-header">
+                        <h1>Gestão de Usuários</h1>
+                        <p>Promova cidadãos a Lideranças.</p>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Papel Atual</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usuariosTbody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Gerador de Material -->
+                <section id="gerador" class="page-section">
+                     <div class="section-header">
+                        <h1>Gerador de Material (WhatsApp)</h1>
+                        <p>Crie artes personalizadas em segundos para compartilhar.</p>
+                    </div>
+                    <div class="generator-container">
+                        <div class="generator-form">
+                            <div class="form-group">
+                                <label>Candidato</label>
+                                <select>
+                                    <option>Candidato Estadual</option>
+                                    <option>Candidata Federal</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Município/Bairro</label>
+                                <input type="text" id="cityInput" placeholder="Ex: Centro">
+                            </div>
+                            <button class="primary-btn full-width" id="generateBtn"><i class="ph ph-magic-wand"></i> Gerar Arte</button>
+                        </div>
+                        <div class="generator-preview">
+                            <div class="preview-box" id="previewArea">
+                                <div class="mock-art">
+                                    <div class="art-header">COMPROMISSO COM <span id="artCity">SUA CIDADE</span></div>
+                                    <div class="art-body">
+                                        <img src="ROSTO-YURI-COM-SHAPE.png" alt="Candidato" style="width: 120px; border-radius: 12px; border: 4px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                                        <div class="vote-number">Vote 99123</div>
+                                    </div>
+                                    <div class="art-footer">Juntos por um futuro melhor!</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>
