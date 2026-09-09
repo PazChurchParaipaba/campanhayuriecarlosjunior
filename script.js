@@ -234,12 +234,154 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Admin Generator
-    const cityInput = document.getElementById('cityInput');
-    const artCityDisplay = document.getElementById('artCity');
-    cityInput.addEventListener('input', (e) => {
-        artCityDisplay.textContent = e.target.value || "SUA CIDADE";
-    });
+    // --- GERADOR DE ARTES (CANVAS) ---
+    let userPhotoDataUrl = null;
+
+    const photoInput = document.getElementById('userPhotoInput');
+    if (photoInput) {
+        photoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    userPhotoDataUrl = event.target.result;
+                    const previewText = document.getElementById('previewText');
+                    if(previewText) previewText.textContent = "Foto carregada! Clique em Gerar Arte Mágica.";
+                    
+                    const label = document.querySelector('.file-upload-wrapper p:nth-of-type(1)');
+                    if (label) label.textContent = file.name;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    const btnGenerateArt = document.getElementById('btnGenerateArt');
+    if (btnGenerateArt) {
+        btnGenerateArt.addEventListener('click', async () => {
+            if (!userPhotoDataUrl) {
+                alert("Por favor, selecione uma foto clicando na área pontilhada.");
+                return;
+            }
+
+            const canvas = document.getElementById('artCanvas');
+            const ctx = canvas.getContext('2d');
+            const candidateOpt = document.getElementById('candidateSelect').value;
+
+            // Load user photo
+            const img = new Image();
+            img.src = userPhotoDataUrl;
+            await new Promise(r => img.onload = r);
+
+            // Draw user photo (cover style 1080x1080)
+            const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+            const x = (canvas.width / 2) - (img.width / 2) * scale;
+            const y = (canvas.height / 2) - (img.height / 2) * scale;
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+            // Draw dark gradient overlay at the bottom for text legibility
+            const gradient = ctx.createLinearGradient(0, canvas.height - 450, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(0,0,0,0)');
+            gradient.addColorStop(0.3, 'rgba(0,0,0,0.6)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0.95)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, canvas.height - 450, canvas.width, 450);
+
+            // Helper to load image
+            const loadImg = (src) => new Promise((resolve) => {
+                const i = new Image();
+                i.onload = () => resolve(i);
+                i.onerror = () => resolve(null);
+                i.src = src;
+            });
+
+            // Load assets
+            const logoYuri = await loadImg('%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png');
+            const logoCarlos = await loadImg('LOGO CARLOS JUNIOR.png');
+
+            // Drawing logic based on selection
+            if (candidateOpt === 'both') {
+                // Yuri left, Carlos right
+                if(logoYuri) {
+                    const aspect = logoYuri.width / logoYuri.height;
+                    const w = 420; const h = w / aspect;
+                    ctx.drawImage(logoYuri, 60, canvas.height - h - 140, w, h);
+                }
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '600 48px "Inter", sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText('Federal', 80, canvas.height - 70);
+                
+                // Draw separator
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, canvas.height - 300);
+                ctx.lineTo(canvas.width / 2, canvas.height - 50);
+                ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Draw Carlos
+                if(logoCarlos) {
+                    const aspect = logoCarlos.width / logoCarlos.height;
+                    const w = 420; const h = w / aspect;
+                    // Center the logo on the right half
+                    const xPos = (canvas.width / 2) + 60;
+                    ctx.drawImage(logoCarlos, xPos, canvas.height - h - 140, w, h);
+                }
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '600 48px "Inter", sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText('Estadual', (canvas.width / 2) + 80, canvas.height - 70);
+
+            } else if (candidateOpt === 'yuri') {
+                if(logoYuri) {
+                    const aspect = logoYuri.width / logoYuri.height;
+                    const w = 700; const h = w / aspect;
+                    ctx.drawImage(logoYuri, canvas.width/2 - w/2, canvas.height - h - 160, w, h);
+                }
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 55px "Inter", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Deputado Federal', canvas.width/2, canvas.height - 80);
+
+            } else if (candidateOpt === 'carlos') {
+                if(logoCarlos) {
+                    const aspect = logoCarlos.width / logoCarlos.height;
+                    const w = 700; const h = w / aspect;
+                    ctx.drawImage(logoCarlos, canvas.width/2 - w/2, canvas.height - h - 160, w, h);
+                }
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 55px "Inter", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Deputado Estadual', canvas.width/2, canvas.height - 80);
+            }
+
+            // Show preview and download
+            const dataUrl = canvas.toDataURL('image/png');
+            const previewArt = document.getElementById('previewArt');
+            if (previewArt) {
+                previewArt.src = dataUrl;
+                previewArt.style.opacity = '1';
+                document.getElementById('previewText').textContent = "Pronto! Clique abaixo para baixar.";
+            }
+            
+            const btnDownload = document.getElementById('btnDownloadArt');
+            if (btnDownload) {
+                btnDownload.style.display = 'inline-flex';
+                btnDownload.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = 'arte_campanha.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                };
+            }
+        });
+    }
 });
 
 // --- ROUTING & RENDERING ---
