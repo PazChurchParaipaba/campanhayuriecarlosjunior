@@ -37,7 +37,8 @@ body {
     background: linear-gradient(135deg, #005680 0%, #009ebf 100%);
     background-attachment: fixed;
     color: var(--text-main);
-    min-height: 100vh;
+    width: 100vw;
+    height: 100vh;
     overflow: hidden; 
 }
 
@@ -49,15 +50,18 @@ body {
 /* --- LANDING VIEW --- */
 .landing-layout { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
 
-.landing-nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 48px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); }
+.landing-nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 48px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; border: none; transition: all 0.3s ease; }
+.landing-nav::after { content: ''; position: absolute; bottom: -24px; left: 0; width: 100%; height: 24px; background: url('TIRA%20TIME%20DO%20AQUINO%20LARANJA.png') repeat-x center bottom; background-size: auto 24px; transition: opacity 0.3s ease; }
+.landing-nav.hide-strip::after { opacity: 0; pointer-events: none; }
 .landing-brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--secondary); }
-.landing-brand img { height: 40px; }
+.landing-brand img { height: 80px; }
 .landing-links { display: flex; align-items: center; gap: 32px; }
 .landing-links a { text-decoration: none; color: var(--text-main); font-weight: 600; transition: color 0.2s; text-transform: uppercase; }
 .landing-links a:hover { color: var(--primary); }
 
 .landing-hero { min-height: 80vh; background: linear-gradient(135deg, rgba(3, 105, 161, 0.85) 0%, rgba(234, 88, 12, 0.85) 100%), url('ROSTO-JUNTOS.png') center/cover no-repeat; display: flex; align-items: center; justify-content: center; text-align: center; color: white; padding: 0 24px; }
-.landing-hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 64px 24px; color: white; }
+.landing-hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 64px 24px; color: white; position: relative; }
+.landing-hero::after { content: ''; position: absolute; bottom: -24px; left: 0; width: 100%; height: 24px; background: url('TIRA%20TIME%20DO%20AQUINO%20LARANJA.png') repeat-x center bottom; background-size: auto 24px; z-index: 10; }
 .landing-hero h1 { font-size: 4rem; font-weight: 800; color: white; line-height: 1.1; margin-bottom: 24px; max-width: 800px; }
 .landing-hero p { font-size: 1.25rem; color: rgba(255,255,255,0.9); margin-bottom: 40px; max-width: 600px; }
 .hero-actions { display: flex; gap: 16px; justify-content: center; }
@@ -138,21 +142,22 @@ textarea { resize: vertical; }
 .full-width { width: 100%; }
 
 /* --- CITIZEN VIEW --- */
+#citizenView { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
 .landing-page { padding: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; background: transparent; }
 .landing-header { padding: 24px 48px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
 .logo-container { display: flex; align-items: center; gap: 12px; }
 .logo-icon { font-size: 32px; color: white; }
 .logo-text { font-size: 1.5rem; font-weight: 800; color: white; letter-spacing: -0.5px; }
 .header-actions { display: flex; align-items: center; gap: 24px; }
-.user-chip { display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--text-muted); }
+.user-chip { display: flex; align-items: center; gap: 8px; font-weight: 500; color: white; }
 
 .citizen-main { max-width: 1000px; margin: 0 auto; padding: 40px 24px; width: 100%; }
 .citizen-welcome { text-align: center; margin-bottom: 48px; }
-.citizen-welcome h1 { font-size: 2.5rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; }
-.citizen-welcome p { font-size: 1.1rem; color: var(--text-muted); }
+.citizen-welcome h1 { font-size: 2.5rem; font-weight: 800; color: var(--warning); margin-bottom: 12px; }
+.citizen-welcome p { font-size: 1.1rem; color: rgba(255,255,255,0.9); }
 
-.citizen-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 32px; margin-bottom: 48px; }
-.action-card { background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: var(--radius-lg); padding: 32px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2); display: flex; flex-direction: column; color: white; }
+.citizen-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 32px; margin-bottom: 48px; justify-content: center; justify-items: center; }
+.action-card { width: 100%; max-width: 500px; background: rgba(255,255,255,0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: var(--radius-lg); padding: 32px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2); display: flex; flex-direction: column; color: white; }
 .action-card form { display: flex; flex-direction: column; flex: 1; }
 .action-card form button[type="submit"] { margin-top: auto; }
 .action-card label { color: white; }
@@ -181,8 +186,16 @@ textarea { resize: vertical; }
 .nav-item:hover { background-color: rgba(255,255,255,0.1); color: white; }
 .nav-item.active { background-color: rgba(255,255,255,0.2); color: white; }
 
+.sidebar-footer { padding: 20px 16px; border-top: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center;}
+.user-info { display: flex; align-items: center; gap: 12px; }
+.user-details { display: flex; flex-direction: column; }
+.user-details .name { font-weight: 600; font-size: 0.9rem; color: white; }
+.user-details .role { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+
 .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background-color: transparent; }
-.top-header { display: flex; justify-content: space-between; align-items: center; padding: 0 32px; height: 72px; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.2); position: sticky; top: 0; z-index: 100; color: white; }
+.top-header { display: flex; justify-content: space-between; align-items: center; padding: 0 32px; height: 72px; background: rgba(0, 86, 128, 0.95); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; color: white; border: none; transition: all 0.3s ease; }
+.top-header::after { content: ''; position: absolute; bottom: -24px; left: 0; width: 100%; height: 24px; background: url('TIRA%20TIME%20DO%20AQUINO%20LARANJA.png') repeat-x center bottom; background-size: auto 24px; transition: opacity 0.3s ease; }
+.top-header.hide-strip::after { opacity: 0; pointer-events: none; }
 .admin-profile { display: flex; align-items: center; gap: 16px; }
 .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--purple)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
 .admin-info { display: flex; flex-direction: column; }
@@ -260,7 +273,10 @@ textarea { resize: vertical; }
     .section-title h2 { font-size: 1.8rem; }
     
     /* Auth */
-    .auth-form-side { padding: 16px; }
+    #authView { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+    .auth-image-side { display: block; flex: none; height: 35vh; min-height: 250px; background-position: center 20%; }
+    .auth-image-side::after { background: linear-gradient(to bottom, transparent, rgba(0,86,128,1)); }
+    .auth-form-side { padding: 16px; flex: none; justify-content: flex-start; margin-top: -60px; z-index: 2; position: relative; }
     .auth-box { padding: 24px; }
     
     /* Citizen */

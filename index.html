@@ -19,7 +19,7 @@
         <!-- Landing Navbar -->
         <nav class="landing-nav">
             <div class="landing-brand">
-                <img src="TIME%20DO%20AQUINO.png" alt="Time do Aquino">
+                <img src="TRAIRI.png" alt="Time do Aquino">
             </div>
             <div class="landing-links">
                 <a href="#eventos">Eventos e Novidades</a>
@@ -71,48 +71,40 @@
                 <div class="auth-header">
                     <img src="TIME%20DO%20AQUINO.png" alt="Time do Aquino" style="height: 60px; margin-bottom: 16px;">
                     <h2>Bem-vindo à Campanha</h2>
-                    <p>Faça login ou cadastre-se para participar</p>
+                    <p style="color: white; font-weight: 600; font-size: 1.1rem; margin-bottom: 16px;">Como você deseja entrar?</p>
                 </div>
                 
                 <div class="auth-tabs">
-                    <button class="auth-tab active" data-tab="login">Login</button>
-                    <button class="auth-tab" data-tab="register">Cadastro</button>
+                    <button class="auth-tab active" data-tab="cidadao">Cidadão Comum</button>
+                    <button class="auth-tab" data-tab="lideranca">Liderança / Equipe</button>
                 </div>
 
-                <!-- Login Form -->
-                <form id="loginForm" class="auth-form active">
+                <!-- Cidadão Form -->
+                <form id="cidadaoForm" class="auth-form active">
                     <div class="form-group">
-                        <label>E-mail</label>
-                        <input type="email" id="loginEmail" required placeholder="seu@email.com">
+                        <label style="color: white;">Seu Nome Completo</label>
+                        <input type="text" id="cidName" required placeholder="Ex: João da Silva">
                     </div>
                     <div class="form-group">
-                        <label>Senha</label>
-                        <input type="password" id="loginPassword" required placeholder="••••••••">
+                        <label style="color: white;">Seu WhatsApp</label>
+                        <input type="tel" id="cidPhone" required placeholder="(85) 99999-9999">
                     </div>
-                    <button type="submit" class="primary-btn full-width">Entrar</button>
-                    <div class="auth-error" id="loginError"></div>
+                    <button type="submit" class="primary-btn full-width">Apoiar Campanha</button>
+                    <div class="auth-error" id="cidError"></div>
                 </form>
 
-                <!-- Register Form -->
-                <form id="registerForm" class="auth-form">
+                <!-- Liderança Form -->
+                <form id="liderancaForm" class="auth-form">
                     <div class="form-group">
-                        <label>Nome Completo</label>
-                        <input type="text" id="regName" required placeholder="João da Silva">
+                        <label style="color: white;">Usuário de Acesso</label>
+                        <input type="text" id="lidName" required placeholder="Nome de Liderança">
                     </div>
                     <div class="form-group">
-                        <label>E-mail</label>
-                        <input type="email" id="regEmail" required placeholder="seu@email.com">
+                        <label style="color: white;">Senha / Telefone</label>
+                        <input type="password" id="lidPhone" required placeholder="Sua Senha de Acesso">
                     </div>
-                    <div class="form-group">
-                        <label>Telefone / WhatsApp</label>
-                        <input type="tel" id="regPhone" required placeholder="(11) 99999-9999">
-                    </div>
-                    <div class="form-group">
-                        <label>Senha</label>
-                        <input type="password" id="regPassword" required placeholder="Crie uma senha">
-                    </div>
-                    <button type="submit" class="primary-btn full-width">Criar Conta</button>
-                    <div class="auth-error" id="regError"></div>
+                    <button type="submit" class="primary-btn full-width">Acessar Painel</button>
+                    <div class="auth-error" id="lidError"></div>
                 </form>
             </div>
         </div>
@@ -136,41 +128,15 @@
 
         <main class="citizen-main">
             <div class="citizen-welcome">
-                <h1>Sua voz importa!</h1>
-                <p>Faça sugestões para o seu bairro ou peça materiais da campanha para apoiar.</p>
-                <img src="%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png" alt="Fechado com Yuri" style="max-width: 300px; width: 100%; height: auto; object-fit: contain; margin-top: 24px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+                <h1>Juntos por nossa cidade!</h1>
+                <p>Peça materiais da campanha para apoiar Yuri e Carlos Junior.</p>
+                <div style="display: flex; gap: 20px; justify-content: center; align-items: center; margin-top: 24px; flex-wrap: wrap;">
+                    <img src="%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png" alt="Fechado com Yuri" style="max-width: 250px; width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+                    <img src="LOGO%20CARLOS%20JUNIOR.png" alt="Carlos Junior" style="max-width: 250px; width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+                </div>
             </div>
 
             <div class="citizen-actions-grid">
-                <!-- Register Demand -->
-                <div class="action-card">
-                    <div class="card-header">
-                        <div class="icon-wrap purple"><i class="ph ph-megaphone"></i></div>
-                        <h3>Registrar Demanda</h3>
-                    </div>
-                    <form id="demandForm">
-                        <div class="form-group">
-                            <label>Bairro</label>
-                            <input type="text" id="demandBairro" required placeholder="Seu bairro">
-                        </div>
-                        <div class="form-group">
-                            <label>Categoria</label>
-                            <select id="demandCategoria" required>
-                                <option value="Infraestrutura">Infraestrutura</option>
-                                <option value="Saúde">Saúde</option>
-                                <option value="Educação">Educação</option>
-                                <option value="Segurança">Segurança</option>
-                                <option value="Outros">Outros</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Descrição do Problema/Sugestão</label>
-                            <textarea id="demandDescricao" rows="3" required placeholder="Descreva o que precisa ser melhorado..."></textarea>
-                        </div>
-                        <button type="submit" class="primary-btn full-width">Enviar Demanda</button>
-                    </form>
-                </div>
-
                 <!-- Request Material -->
                 <div class="action-card">
                     <div class="card-header">
@@ -181,10 +147,8 @@
                         <div class="form-group">
                             <label>Tipo de Material</label>
                             <select id="matTipo" required>
-                                <option value="Adesivo Perfurado (Carro)">Adesivo Perfurado (Carro)</option>
-                                <option value="Adesivo de Para-choque">Adesivo de Para-choque</option>
-                                <option value="Bandeira">Bandeira</option>
-                                <option value="Praguinha/Santinho">Praguinha/Santinho</option>
+                                <option value="Adesivo">Adesivo</option>
+                                <option value="Santinho">Santinho</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -197,6 +161,46 @@
                         </div>
                         <button type="submit" class="primary-btn full-width">Solicitar Material</button>
                     </form>
+                </div>
+
+                <!-- Gerador de Material Cidadão -->
+                <div class="action-card" style="max-width: 100%;">
+                    <div class="card-header">
+                        <div class="icon-wrap blue" style="background: rgba(255,255,255,0.2); color: white;"><i class="ph ph-image"></i></div>
+                        <h3>Gerador de Arte para WhatsApp</h3>
+                    </div>
+                    <p style="color: white; margin-bottom: 24px; font-size: 0.95rem;">Faça sua própria arte de apoio com Yuri e Carlos Junior usando sua foto!</p>
+                    
+                    <div class="generator-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="color: white;">Sua Foto (ou da Família)</label>
+                                <div class="file-upload-wrapper" style="position: relative; border: 2px dashed rgba(255,255,255,0.4); border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(0,0,0,0.2);">
+                                    <input type="file" id="userPhotoInputCit" accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2;">
+                                    <i class="ph ph-camera" style="font-size: 32px; color: white; margin-bottom: 8px; display: block;"></i>
+                                    <p style="font-weight: 600; color: white; font-size: 0.9rem;">Clique ou arraste uma foto aqui</p>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="color: white;">Candidatos na Arte</label>
+                                <select id="candidateSelectCit" style="background: rgba(0,0,0,0.2); color: white; border-color: rgba(255,255,255,0.3);">
+                                    <option value="both">Yuri (1515) e Carlos Junior (33000)</option>
+                                    <option value="yuri">Somente Yuri do Paredão (1515)</option>
+                                    <option value="carlos">Somente Carlos Junior (33000)</option>
+                                </select>
+                            </div>
+                            <button class="primary-btn full-width" id="btnGenerateArtCit" style="margin-top: auto;"><i class="ph ph-magic-wand"></i> Criar Arte</button>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); min-height: 250px; text-align: center; padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                            <canvas id="artCanvasCit" width="1080" height="1080" style="display: none;"></canvas>
+                            <img id="previewArtCit" src="%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png" style="width: 100%; max-width: 250px; height: auto; border-radius: 8px; opacity: 0.5; box-shadow: var(--shadow-md); transition: opacity 0.3s;">
+                            
+                            <button class="primary-btn" id="btnDownloadArtCit" style="display:none; margin-top: 16px; width: 100%;">
+                                <i class="ph ph-download-simple"></i> Baixar Arte
+                            </button>
+                            <p id="previewTextCit" style="color: rgba(255,255,255,0.8); margin-top: 12px; font-size: 0.85rem;">Sua arte aparecerá aqui</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -225,8 +229,8 @@
                 <a href="#" class="nav-item" data-target="eventosAdmin">
                     <i class="ph ph-calendar-plus"></i> Gestão de Eventos
                 </a>
-                <a href="#" class="nav-item" data-target="demandasAdmin">
-                    <i class="ph ph-megaphone"></i> Demandas Recebidas
+                <a href="#" class="nav-item" data-target="compromissosAdmin">
+                    <i class="ph ph-handshake"></i> Compromissos Fechados
                 </a>
                 <a href="#" class="nav-item" data-target="pedidosAdmin">
                     <i class="ph ph-package"></i> Pedidos de Material
@@ -280,10 +284,10 @@
                             </div>
                         </div>
                         <div class="kpi-card">
-                            <div class="kpi-icon purple"><i class="ph ph-megaphone"></i></div>
+                            <div class="kpi-icon purple"><i class="ph ph-handshake"></i></div>
                             <div class="kpi-info">
-                                <h3>Demandas Registradas</h3>
-                                <div class="kpi-value" id="kpiDemands">0</div>
+                                <h3>Votos Fechados</h3>
+                                <div class="kpi-value" id="kpiVotos">0</div>
                             </div>
                         </div>
                         <div class="kpi-card">
@@ -298,10 +302,10 @@
                     <div class="charts-grid">
                         <div class="chart-card secondary-chart">
                             <div class="card-header">
-                                <h3>Demandas por Categoria</h3>
+                                <h3>Votos por Bairro</h3>
                             </div>
                             <div class="chart-container">
-                                <canvas id="demandsChart"></canvas>
+                                <canvas id="votosChart"></canvas>
                             </div>
                         </div>
                         <div class="recent-activity">
@@ -362,24 +366,34 @@
                     </div>
                 </section>
 
-                <!-- Demandas Admin -->
-                <section id="demandasAdmin" class="page-section">
+                <!-- Compromissos Admin -->
+                <section id="compromissosAdmin" class="page-section">
                     <div class="section-header">
-                        <h1>Demandas da População</h1>
-                        <p>Visualize e gerencie os problemas relatados.</p>
+                        <h1>Compromissos Fechados</h1>
+                        <p>Visualize os votos fechados registrados pelas lideranças.</p>
+                    </div>
+                    <div class="stats-container" style="display: flex; gap: 16px; margin-bottom: 24px; padding: 0 24px;">
+                        <div style="flex: 1; background: var(--bg-main); padding: 24px; border-radius: 8px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                            <div style="font-size: 36px; font-weight: 900; color: var(--primary);" id="adminTotalVotos">0</div>
+                            <div style="font-size: 16px; font-weight: 600; color: var(--text-main); margin-top: 8px;">Total de Votos Fechados</div>
+                        </div>
+                        <div style="flex: 1; background: var(--bg-main); padding: 24px; border-radius: 8px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                            <div style="font-size: 36px; font-weight: 900; color: var(--danger);" id="adminQuebraVotos">0</div>
+                            <div style="font-size: 16px; font-weight: 600; color: var(--text-main); margin-top: 8px;">Quebra Estimada (30%)</div>
+                        </div>
                     </div>
                     <div class="table-container">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Cidadão</th>
+                                    <th>Registrado por</th>
+                                    <th>Eleitor</th>
+                                    <th>Telefone</th>
                                     <th>Bairro</th>
-                                    <th>Categoria</th>
-                                    <th>Descrição</th>
                                     <th>Data</th>
                                 </tr>
                             </thead>
-                            <tbody id="demandasTbody">
+                            <tbody id="votosTbody">
                                 <!-- Populated by JS -->
                             </tbody>
                         </table>

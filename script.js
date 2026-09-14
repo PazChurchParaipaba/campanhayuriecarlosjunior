@@ -42,58 +42,66 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Login Submit
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    // Cidadão Submit
+    document.getElementById('cidadaoForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const pass = document.getElementById('loginPassword').value;
-        const err = document.getElementById('loginError');
+        const name = document.getElementById('cidName').value;
+        const phone = document.getElementById('cidPhone').value;
+        const err = document.getElementById('cidError');
         
-        const { data, error } = await supabaseClient
-            .from('users')
-            .select('*')
-            .eq('email', email)
-            .eq('password', pass)
-            .maybeSingle();
-            
-        if (data) {
+        // Check if user exists
+        const { data: existing } = await supabaseClient.from('users').select('*').eq('phone', phone).maybeSingle();
+        
+        if (existing) {
+            err.textContent = '';
+            setSessionUser(existing);
+            checkAuthState();
+        } else {
+            // Create user on the fly
+            const { data, error } = await supabaseClient.from('users').insert([{
+                name, phone, role: 'citizen', email: `${Date.now()}@temp.com`, password: '123'
+            }]).select().single();
+
+            if (error) {
+                err.textContent = 'Erro ao entrar. Tente novamente.';
+                console.error(error);
+                return;
+            }
             err.textContent = '';
             setSessionUser(data);
             checkAuthState();
-        } else {
-            err.textContent = 'Email ou senha incorretos.';
         }
     });
 
-    // Register Submit
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    // Liderança Submit
+    document.getElementById('liderancaForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = document.getElementById('regName').value;
-        const email = document.getElementById('regEmail').value;
-        const phone = document.getElementById('regPhone').value;
-        const pass = document.getElementById('regPassword').value;
-        const err = document.getElementById('regError');
+        const name = document.getElementById('lidName').value;
+        const phone = document.getElementById('lidPhone').value;
+        const err = document.getElementById('lidError');
 
-        // Check if exists
-        const { data: existing } = await supabaseClient.from('users').select('id').eq('email', email).maybeSingle();
-        if (existing) {
-            err.textContent = 'Este email já está cadastrado.';
-            return;
+        if (name === 'Admin Master' && phone === '85991815434') {
+            err.textContent = '';
+            setSessionUser({ id: 999999, name: 'Admin Master', role: 'master', phone: '85991815434' });
+            checkAuthState();
+        } else {
+            // Let's also check if there is an actual leader in the DB
+            const { data, error } = await supabaseClient
+                .from('users')
+                .select('*')
+                .eq('name', name)
+                .eq('phone', phone)
+                .in('role', ['leader', 'master'])
+                .maybeSingle();
+
+            if (data) {
+                err.textContent = '';
+                setSessionUser(data);
+                checkAuthState();
+            } else {
+                err.textContent = 'Credenciais de liderança inválidas.';
+            }
         }
-
-        const { data, error } = await supabaseClient.from('users').insert([{
-            name, email, phone, password: pass, role: 'citizen'
-        }]).select().single();
-
-        if (error) {
-            err.textContent = 'Erro ao criar conta.';
-            console.error(error);
-            return;
-        }
-
-        setSessionUser(data);
-        err.textContent = '';
-        checkAuthState();
     });
 
     // Logout
@@ -105,22 +113,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // --- CITIZEN ACTIONS ---
-    document.getElementById('demandForm').addEventListener('submit', async (e) => {
+    document.getElementById('votoForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const user = getSessionUser();
-        const demand = {
+        const voto = {
             user_id: user.id,
             user_name: user.name,
-            bairro: document.getElementById('demandBairro').value,
-            categoria: document.getElementById('demandCategoria').value,
-            descricao: document.getElementById('demandDescricao').value,
+            eleitor_nome: document.getElementById('votoNome').value,
+            eleitor_telefone: document.getElementById('votoTelefone').value,
+            bairro: document.getElementById('votoBairro').value,
             data: new Date().toLocaleDateString(),
-            type: 'demanda'
+            type: 'voto'
         };
         
-        await supabaseClient.from('demands').insert([demand]);
+        await supabaseClient.from('votos_fechados').insert([voto]);
         e.target.reset();
-        alert('Demanda enviada com sucesso!');
+        alert('Voto Fechado registrado com sucesso!');
         loadCitizenHistory();
     });
 
@@ -235,153 +243,171 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- GERADOR DE ARTES (CANVAS) ---
-    let userPhotoDataUrl = null;
+    function setupGenerator(photoInputId, candidateSelectId, btnGenerateArtId, canvasId, previewArtId, previewTextId, btnDownloadId) {
+        let userPhotoDataUrl = null;
 
-    const photoInput = document.getElementById('userPhotoInput');
-    if (photoInput) {
-        photoInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    userPhotoDataUrl = event.target.result;
-                    const previewText = document.getElementById('previewText');
-                    if(previewText) previewText.textContent = "Foto carregada! Clique em Gerar Arte Mágica.";
-                    
-                    const label = document.querySelector('.file-upload-wrapper p:nth-of-type(1)');
-                    if (label) label.textContent = file.name;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-
-    const btnGenerateArt = document.getElementById('btnGenerateArt');
-    if (btnGenerateArt) {
-        btnGenerateArt.addEventListener('click', async () => {
-            if (!userPhotoDataUrl) {
-                alert("Por favor, selecione uma foto clicando na área pontilhada.");
-                return;
-            }
-
-            const canvas = document.getElementById('artCanvas');
-            const ctx = canvas.getContext('2d');
-            const candidateOpt = document.getElementById('candidateSelect').value;
-
-            // Load user photo
-            const img = new Image();
-            img.src = userPhotoDataUrl;
-            await new Promise(r => img.onload = r);
-
-            // Draw user photo (cover style 1080x1080)
-            const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-            const x = (canvas.width / 2) - (img.width / 2) * scale;
-            const y = (canvas.height / 2) - (img.height / 2) * scale;
-            
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-
-            // Draw dark gradient overlay at the bottom for text legibility
-            const gradient = ctx.createLinearGradient(0, canvas.height - 450, 0, canvas.height);
-            gradient.addColorStop(0, 'rgba(0,0,0,0)');
-            gradient.addColorStop(0.3, 'rgba(0,0,0,0.6)');
-            gradient.addColorStop(1, 'rgba(0,0,0,0.95)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, canvas.height - 450, canvas.width, 450);
-
-            // Helper to load image
-            const loadImg = (src) => new Promise((resolve) => {
-                const i = new Image();
-                i.onload = () => resolve(i);
-                i.onerror = () => resolve(null);
-                i.src = src;
+        const photoInput = document.getElementById(photoInputId);
+        if (photoInput) {
+            photoInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        userPhotoDataUrl = event.target.result;
+                        const previewText = document.getElementById(previewTextId);
+                        if(previewText) previewText.textContent = "Foto carregada! Clique no botão para criar a arte.";
+                    };
+                    reader.readAsDataURL(file);
+                }
             });
+        }
 
-            // Load assets
-            const logoYuri = await loadImg('%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png');
-            const logoCarlos = await loadImg('LOGO CARLOS JUNIOR.png');
-
-            // Drawing logic based on selection
-            if (candidateOpt === 'both') {
-                // Yuri left, Carlos right
-                if(logoYuri) {
-                    const aspect = logoYuri.width / logoYuri.height;
-                    const w = 420; const h = w / aspect;
-                    ctx.drawImage(logoYuri, 60, canvas.height - h - 140, w, h);
+        const btnGenerateArt = document.getElementById(btnGenerateArtId);
+        if (btnGenerateArt) {
+            btnGenerateArt.addEventListener('click', async () => {
+                if (!userPhotoDataUrl) {
+                    alert("Por favor, selecione uma foto clicando na área pontilhada.");
+                    return;
                 }
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '600 48px "Inter", sans-serif';
-                ctx.textAlign = 'left';
-                ctx.fillText('Federal', 80, canvas.height - 70);
+
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                const candidateOpt = document.getElementById(candidateSelectId).value;
+
+                const img = new Image();
+                img.src = userPhotoDataUrl;
+                await new Promise(r => img.onload = r);
+
+                const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+                const x = (canvas.width / 2) - (img.width / 2) * scale;
+                const y = (canvas.height / 2) - (img.height / 2) * scale;
                 
-                // Draw separator
-                ctx.beginPath();
-                ctx.moveTo(canvas.width / 2, canvas.height - 300);
-                ctx.lineTo(canvas.width / 2, canvas.height - 50);
-                ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-
-                // Draw Carlos
-                if(logoCarlos) {
-                    const aspect = logoCarlos.width / logoCarlos.height;
-                    const w = 420; const h = w / aspect;
-                    // Center the logo on the right half
-                    const xPos = (canvas.width / 2) + 60;
-                    ctx.drawImage(logoCarlos, xPos, canvas.height - h - 140, w, h);
-                }
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '600 48px "Inter", sans-serif';
-                ctx.textAlign = 'left';
-                ctx.fillText('Estadual', (canvas.width / 2) + 80, canvas.height - 70);
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
 
-            } else if (candidateOpt === 'yuri') {
-                if(logoYuri) {
-                    const aspect = logoYuri.width / logoYuri.height;
-                    const w = 700; const h = w / aspect;
-                    ctx.drawImage(logoYuri, canvas.width/2 - w/2, canvas.height - h - 160, w, h);
+                const gradient = ctx.createLinearGradient(0, canvas.height - 450, 0, canvas.height);
+                gradient.addColorStop(0, 'rgba(0,0,0,0)');
+                gradient.addColorStop(0.3, 'rgba(0,0,0,0.6)');
+                gradient.addColorStop(1, 'rgba(0,0,0,0.95)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, canvas.height - 450, canvas.width, 450);
+
+                const loadImg = (src) => new Promise((resolve) => {
+                    const i = new Image();
+                    i.onload = () => resolve(i);
+                    i.onerror = () => resolve(null);
+                    i.src = src;
+                });
+
+                const logoYuri = await loadImg('%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png');
+                const logoCarlos = await loadImg('LOGO CARLOS JUNIOR.png');
+                const logoMeuDeputado = await loadImg('MEU-DEPUTADO.png');
+                const logoRostoJuntos = await loadImg('ROSTO-JUNTOS.png');
+                const logoTrairi = await loadImg('TRAIRI.png');
+
+                if (candidateOpt === 'both') {
+                    if(logoYuri) {
+                        const aspect = logoYuri.width / logoYuri.height;
+                        const w = 420; const h = w / aspect;
+                        ctx.drawImage(logoYuri, 60, canvas.height - h - 80, w, h);
+                    }
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width / 2, canvas.height - 250);
+                    ctx.lineTo(canvas.width / 2, canvas.height - 50);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    if(logoCarlos) {
+                        const aspect = logoCarlos.width / logoCarlos.height;
+                        const w = 420; const h = w / aspect;
+                        const xPos = (canvas.width / 2) + 60;
+                        ctx.drawImage(logoCarlos, xPos, canvas.height - h - 80, w, h);
+                    }
+
+                } else if (candidateOpt === 'yuri') {
+                    if(logoYuri) {
+                        const aspect = logoYuri.width / logoYuri.height;
+                        const w = 700; const h = w / aspect;
+                        ctx.drawImage(logoYuri, canvas.width/2 - w/2, canvas.height - h - 80, w, h);
+                    }
+
+                } else if (candidateOpt === 'carlos') {
+                    if(logoCarlos) {
+                        const aspect = logoCarlos.width / logoCarlos.height;
+                        const w = 700; const h = w / aspect;
+                        ctx.drawImage(logoCarlos, canvas.width/2 - w/2, canvas.height - h - 80, w, h);
+                    }
                 }
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 55px "Inter", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Deputado Federal', canvas.width/2, canvas.height - 80);
 
-            } else if (candidateOpt === 'carlos') {
-                if(logoCarlos) {
-                    const aspect = logoCarlos.width / logoCarlos.height;
-                    const w = 700; const h = w / aspect;
-                    ctx.drawImage(logoCarlos, canvas.width/2 - w/2, canvas.height - h - 160, w, h);
+                // Draw the three extra logos at the top (Left, Center, Right)
+                const topLogoWidth = 280;
+                
+                if (logoMeuDeputado) {
+                    const aspect = logoMeuDeputado.width / logoMeuDeputado.height;
+                    const w = topLogoWidth; const h = w / aspect;
+                    ctx.drawImage(logoMeuDeputado, 40, 40, w, h);
                 }
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 55px "Inter", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Deputado Estadual', canvas.width/2, canvas.height - 80);
-            }
+                
+                if (logoTrairi) {
+                    const aspect = logoTrairi.width / logoTrairi.height;
+                    const w = topLogoWidth; const h = w / aspect;
+                    ctx.drawImage(logoTrairi, (canvas.width - w) / 2, 40, w, h);
+                }
+                
+                if (logoRostoJuntos) {
+                    const aspect = logoRostoJuntos.width / logoRostoJuntos.height;
+                    const w = topLogoWidth; const h = w / aspect;
+                    ctx.drawImage(logoRostoJuntos, canvas.width - w - 40, 40, w, h);
+                }
 
-            // Show preview and download
-            const dataUrl = canvas.toDataURL('image/png');
-            const previewArt = document.getElementById('previewArt');
-            if (previewArt) {
-                previewArt.src = dataUrl;
-                previewArt.style.opacity = '1';
-                document.getElementById('previewText').textContent = "Pronto! Clique abaixo para baixar.";
-            }
-            
-            const btnDownload = document.getElementById('btnDownloadArt');
-            if (btnDownload) {
-                btnDownload.style.display = 'inline-flex';
-                btnDownload.onclick = () => {
-                    const a = document.createElement('a');
-                    a.href = dataUrl;
-                    a.download = 'arte_campanha.png';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                };
-            }
-        });
+                const dataUrl = canvas.toDataURL('image/png');
+                const previewArt = document.getElementById(previewArtId);
+                if (previewArt) {
+                    previewArt.src = dataUrl;
+                    previewArt.style.opacity = '1';
+                    const pt = document.getElementById(previewTextId);
+                    if(pt) pt.textContent = "Pronto! Clique abaixo para baixar.";
+                }
+                
+                const btnDownload = document.getElementById(btnDownloadId);
+                if (btnDownload) {
+                    btnDownload.style.display = 'inline-flex';
+                    btnDownload.onclick = () => {
+                        const a = document.createElement('a');
+                        a.href = dataUrl;
+                        a.download = 'arte_campanha.png';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    };
+                }
+            });
+        }
     }
+
+    // Initialize Citizen Generator
+    setupGenerator('userPhotoInputCit', 'candidateSelectCit', 'btnGenerateArtCit', 'artCanvasCit', 'previewArtCit', 'previewTextCit', 'btnDownloadArtCit');
+    // Initialize Admin Generator
+    setupGenerator('userPhotoInput', 'candidateSelect', 'btnGenerateArt', 'artCanvas', 'previewArt', 'previewText', 'btnDownloadArt');
+
+    // Scroll listener to hide strip
+    document.querySelectorAll('.view-container').forEach(container => {
+        let lastScroll = container.scrollTop;
+        container.addEventListener('scroll', () => {
+            const currentScroll = container.scrollTop;
+            const navs = container.querySelectorAll('.landing-nav, .top-header');
+            
+            if (currentScroll > lastScroll && currentScroll > 50) {
+                navs.forEach(nav => nav.classList.add('hide-strip'));
+            } else {
+                navs.forEach(nav => nav.classList.remove('hide-strip'));
+            }
+            lastScroll = currentScroll;
+        });
+    });
 });
 
 // --- ROUTING & RENDERING ---
@@ -449,30 +475,41 @@ async function renderLandingEvents() {
 async function loadCitizenHistory() {
     const user = getSessionUser();
     const historyList = document.getElementById('citizenHistoryList');
+    if (!historyList) return;
     historyList.innerHTML = '';
 
-    const { data: demands } = await supabaseClient.from('demands').select('*').eq('user_id', user.id);
+    const { data: votos } = await supabaseClient.from('votos_fechados').select('*').eq('user_id', user.id);
     const { data: materials } = await supabaseClient.from('materials').select('*').eq('user_id', user.id);
     
-    const all = [...(demands || []), ...(materials || [])].sort((a,b) => b.id - a.id);
+    const all = [...(votos || []), ...(materials || [])].sort((a,b) => b.id - a.id);
+
+    // Update Votos Stats
+    const totalVotosEl = document.getElementById('totalVotos');
+    const quebraVotosEl = document.getElementById('quebraVotos');
+    if (totalVotosEl && votos) {
+        const total = votos.length;
+        const quebra = Math.floor(total * 0.3);
+        totalVotosEl.textContent = total;
+        quebraVotosEl.textContent = quebra;
+    }
 
     if (all.length === 0) {
-        historyList.innerHTML = '<p style="color: #64748b;">Nenhuma atividade registrada ainda.</p>';
+        historyList.innerHTML = '<p style="color: white;">Nenhuma atividade registrada ainda.</p>';
         return;
     }
 
     all.forEach(item => {
         const div = document.createElement('div');
         div.className = 'history-item';
-        const title = item.type === 'demanda' ? `Demanda: ${item.categoria}` : `Material: ${item.tipo} (x${item.qtd})`;
-        const desc = item.type === 'demanda' ? item.descricao : `Entregar em: ${item.endereco}`;
+        const title = item.type === 'voto' ? `Voto Fechado: ${item.eleitor_nome}` : `Material: ${item.tipo} (x${item.qtd})`;
+        const desc = item.type === 'voto' ? `Bairro: ${item.bairro} | Tel: ${item.eleitor_telefone}` : `Entregar em: ${item.endereco}`;
         
         div.innerHTML = `
             <div class="history-info">
                 <strong>${title}</strong>
                 <span>${item.data} - ${desc}</span>
             </div>
-            <div class="status-badge">Em Análise</div>
+            <div class="status-badge">Registrado</div>
         `;
         historyList.appendChild(div);
     });
@@ -485,13 +522,13 @@ async function loadAdminData() {
     
     const [
         { data: users },
-        { data: demands },
+        { data: votos },
         { data: materials },
         { data: events },
         { data: internalMeetings }
     ] = await Promise.all([
         supabaseClient.from('users').select('*'),
-        supabaseClient.from('demands').select('*').order('id', { ascending: false }),
+        supabaseClient.from('votos_fechados').select('*').order('id', { ascending: false }),
         supabaseClient.from('materials').select('*').order('id', { ascending: false }),
         supabaseClient.from('events').select('*').order('id', { ascending: false }),
         supabaseClient.from('internal_meetings').select('*').order('id', { ascending: false })
@@ -499,8 +536,18 @@ async function loadAdminData() {
     
     // Update KPIs
     document.getElementById('kpiUsers').textContent = users?.length || 0;
-    document.getElementById('kpiDemands').textContent = demands?.length || 0;
+    document.getElementById('kpiVotos').textContent = votos?.length || 0;
     document.getElementById('kpiMaterials').textContent = materials?.length || 0;
+    
+    // Votos Stats Admin
+    const adminTotalVotosEl = document.getElementById('adminTotalVotos');
+    const adminQuebraVotosEl = document.getElementById('adminQuebraVotos');
+    if (adminTotalVotosEl && votos) {
+        const total = votos.length;
+        const quebra = Math.floor(total * 0.3);
+        adminTotalVotosEl.textContent = total;
+        adminQuebraVotosEl.textContent = quebra;
+    }
     
     // Load Events Table
     const eBody = document.getElementById('eventosTbody');
@@ -526,17 +573,17 @@ async function loadAdminData() {
         });
     }
 
-    // Load Demandas Table
-    const dBody = document.getElementById('demandasTbody');
-    if(dBody && demands) {
-        dBody.innerHTML = '';
-        demands.forEach(d => {
-            dBody.innerHTML += `<tr>
-                <td>${d.user_name}</td>
-                <td>${d.bairro}</td>
-                <td>${d.categoria}</td>
-                <td>${d.descricao}</td>
-                <td>${d.data}</td>
+    // Load Votos Table
+    const vBody = document.getElementById('votosTbody');
+    if(vBody && votos) {
+        vBody.innerHTML = '';
+        votos.forEach(v => {
+            vBody.innerHTML += `<tr>
+                <td>${v.user_name}</td>
+                <td>${v.eleitor_nome}</td>
+                <td>${v.eleitor_telefone}</td>
+                <td>${v.bairro}</td>
+                <td>${v.data}</td>
             </tr>`;
         });
     }
@@ -591,38 +638,46 @@ async function loadAdminData() {
     const actList = document.getElementById('adminActivityList');
     if (actList) {
         actList.innerHTML = '';
-        const allActivity = [...(demands || []), ...(materials || [])].sort((a,b) => b.id - a.id).slice(0, 5);
+        const allActivity = [...(votos || []), ...(materials || [])].sort((a,b) => b.id - a.id).slice(0, 5);
         allActivity.forEach(item => {
             actList.innerHTML += `
-                <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
-                    <strong style="font-size: 0.9rem;">${item.user_name}</strong>
-                    <p style="font-size: 0.85rem; color: #64748b;">${item.type === 'demanda' ? `Registrou demanda em ${item.bairro}` : `Pediu ${item.tipo}`}</p>
+                <div style="border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 12px;">
+                    <strong style="font-size: 0.9rem; color: white;">${item.user_name}</strong>
+                    <p style="font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 4px;">${item.type === 'voto' ? `Registrou voto fechado em ${item.bairro}` : `Pediu ${item.tipo}`}</p>
                 </div>
             `;
         });
     }
 
     // Render Chart
-    const categories = ['Infraestrutura', 'Saúde', 'Educação', 'Segurança', 'Outros'];
-    const catData = categories.map(cat => (demands || []).filter(d => d.categoria === cat).length);
-    
-    const ctx = document.getElementById('demandsChart')?.getContext('2d');
-    if (ctx) {
+    const ctx = document.getElementById('votosChart')?.getContext('2d');
+    if (ctx && votos) {
         if (demandsChartInstance) demandsChartInstance.destroy();
         
+        // Count votes per neighborhood
+        const bairroCounts = {};
+        votos.forEach(v => {
+            const b = v.bairro || 'Desconhecido';
+            bairroCounts[b] = (bairroCounts[b] || 0) + 1;
+        });
+        
+        const labels = Object.keys(bairroCounts);
+        const data = Object.values(bairroCounts);
+
         demandsChartInstance = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: categories,
+                labels: labels,
                 datasets: [{
-                    data: catData,
-                    backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#64748b'],
+                    data: data,
+                    backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#64748b', '#ef4444', '#14b8a6'],
                     borderWidth: 0
                 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } },
+                color: 'white',
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, color: 'white' } } },
                 cutout: '70%'
             }
         });
