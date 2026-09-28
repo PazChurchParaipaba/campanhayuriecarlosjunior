@@ -137,32 +137,6 @@
             </div>
 
             <div class="citizen-actions-grid">
-                <!-- Request Material -->
-                <div class="action-card">
-                    <div class="card-header">
-                        <div class="icon-wrap orange"><i class="ph ph-package"></i></div>
-                        <h3>Pedir Material Físico</h3>
-                    </div>
-                    <form id="materialForm">
-                        <div class="form-group">
-                            <label>Tipo de Material</label>
-                            <select id="matTipo" required>
-                                <option value="Adesivo">Adesivo</option>
-                                <option value="Santinho">Santinho</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Quantidade Estimada</label>
-                            <input type="number" id="matQtd" required min="1" max="100" value="1">
-                        </div>
-                        <div class="form-group">
-                            <label>Endereço de Entrega/Retirada</label>
-                            <input type="text" id="matEndereco" required placeholder="Endereço completo">
-                        </div>
-                        <button type="submit" class="primary-btn full-width">Solicitar Material</button>
-                    </form>
-                </div>
-
                 <!-- Gerador de Material Cidadão -->
                 <div class="action-card" style="max-width: 100%;">
                     <div class="card-header">
@@ -192,7 +166,7 @@
                             <button class="primary-btn full-width" id="btnGenerateArtCit" style="margin-top: auto;"><i class="ph ph-magic-wand"></i> Criar Arte</button>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); min-height: 250px; text-align: center; padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
-                            <canvas id="artCanvasCit" width="1080" height="1080" style="display: none;"></canvas>
+                            <canvas id="artCanvasCit" width="1080" height="1920" style="display: none;"></canvas>
                             <img id="previewArtCit" src="%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png" style="width: 100%; max-width: 250px; height: auto; border-radius: 8px; opacity: 0.5; box-shadow: var(--shadow-md); transition: opacity 0.3s;">
                             
                             <button class="primary-btn" id="btnDownloadArtCit" style="display:none; margin-top: 16px; width: 100%;">
@@ -204,13 +178,7 @@
                 </div>
             </div>
 
-            <!-- Citizen History -->
-            <div class="history-section">
-                <h3>Seu Histórico</h3>
-                <div class="history-list" id="citizenHistoryList">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
+
         </main>
     </div>
 
@@ -370,33 +338,56 @@
                 <section id="compromissosAdmin" class="page-section">
                     <div class="section-header">
                         <h1>Compromissos Fechados</h1>
-                        <p>Visualize os votos fechados registrados pelas lideranças.</p>
+                        <p>Registre e visualize os votos fechados pelas lideranças.</p>
                     </div>
-                    <div class="stats-container" style="display: flex; gap: 16px; margin-bottom: 24px; padding: 0 24px;">
-                        <div style="flex: 1; background: var(--bg-main); padding: 24px; border-radius: 8px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                            <div style="font-size: 36px; font-weight: 900; color: var(--primary);" id="adminTotalVotos">0</div>
-                            <div style="font-size: 16px; font-weight: 600; color: var(--text-main); margin-top: 8px;">Total de Votos Fechados</div>
+                    
+                    <div class="charts-grid">
+                        <div class="generator-form">
+                            <form id="createVotoForm">
+                                <div class="form-group">
+                                    <label>Nome do Eleitor</label>
+                                    <input type="text" id="votoEleitor" required placeholder="Ex: Maria José">
+                                </div>
+                                <div class="form-group">
+                                    <label>Telefone</label>
+                                    <input type="text" id="votoTelefone" required placeholder="Ex: (85) 99999-9999">
+                                </div>
+                                <div class="form-group">
+                                    <label>Bairro</label>
+                                    <input type="text" id="votoBairro" required placeholder="Ex: Centro">
+                                </div>
+                                <button type="submit" class="primary-btn full-width"><i class="ph ph-check-circle"></i> Registrar Voto Fechado</button>
+                            </form>
                         </div>
-                        <div style="flex: 1; background: var(--bg-main); padding: 24px; border-radius: 8px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                            <div style="font-size: 36px; font-weight: 900; color: var(--danger);" id="adminQuebraVotos">0</div>
-                            <div style="font-size: 16px; font-weight: 600; color: var(--text-main); margin-top: 8px;">Quebra Estimada (30%)</div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 24px;">
+                            <div class="stats-container" style="display: flex; gap: 16px;">
+                                <div style="flex: 1; background: var(--bg-main); padding: 24px; border-radius: 8px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                                    <div style="font-size: 36px; font-weight: 900; color: var(--primary);" id="adminTotalVotos">0</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: var(--text-main); margin-top: 8px;">Total de Votos Fechados</div>
+                                </div>
+                                <div style="flex: 1; background: var(--bg-main); padding: 24px; border-radius: 8px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                                    <div style="font-size: 36px; font-weight: 900; color: var(--danger);" id="adminQuebraVotos">0</div>
+                                    <div style="font-size: 16px; font-weight: 600; color: var(--text-main); margin-top: 8px;">Quebra Estimada (30%)</div>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Registrado por</th>
+                                            <th>Eleitor</th>
+                                            <th>Telefone</th>
+                                            <th>Bairro</th>
+                                            <th>Data</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="votosTbody">
+                                        <!-- Populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Registrado por</th>
-                                    <th>Eleitor</th>
-                                    <th>Telefone</th>
-                                    <th>Bairro</th>
-                                    <th>Data</th>
-                                </tr>
-                            </thead>
-                            <tbody id="votosTbody">
-                                <!-- Populated by JS -->
-                            </tbody>
-                        </table>
                     </div>
                 </section>
 
@@ -522,7 +513,7 @@
                             <button class="primary-btn full-width" id="btnGenerateArt"><i class="ph ph-magic-wand"></i> Gerar Arte Mágica</button>
                         </div>
                         <div class="generator-preview card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-main); min-height: 400px; text-align: center; padding: 32px; border-radius: var(--radius-lg); box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);">
-                            <canvas id="artCanvas" width="1080" height="1080" style="display: none;"></canvas>
+                            <canvas id="artCanvas" width="1080" height="1920" style="display: none;"></canvas>
                             <img id="previewArt" src="%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png" style="width: 100%; max-width: 320px; height: auto; border-radius: var(--radius-md); opacity: 0.5; box-shadow: var(--shadow-md); transition: opacity 0.3s;">
                             
                             <button class="primary-btn" id="btnDownloadArt" style="display:none; margin-top: 24px;">

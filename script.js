@@ -21,8 +21,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Landing / Auth navigation
     document.getElementById('btnGoToLogin').addEventListener('click', () => {
-        document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
-        document.getElementById('authView').classList.add('active');
+        // Bypass auth and go to dashboard directly (Aberto)
+        setSessionUser({ id: 999999, name: 'Cidadão', role: 'citizen', phone: '000000000' });
+        checkAuthState();
     });
 
     document.getElementById('btnBackToLanding').addEventListener('click', () => {
@@ -131,6 +132,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('Voto Fechado registrado com sucesso!');
         loadCitizenHistory();
     });
+
+    const createVotoForm = document.getElementById('createVotoForm');
+    if (createVotoForm) {
+        createVotoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = getSessionUser();
+            const voto = {
+                user_id: user.id,
+                user_name: user.name,
+                eleitor_nome: document.getElementById('votoEleitor').value,
+                eleitor_telefone: document.getElementById('votoTelefone').value,
+                bairro: document.getElementById('votoBairro').value,
+                data: new Date().toLocaleDateString(),
+                type: 'voto'
+            };
+            
+            await supabaseClient.from('votos_fechados').insert([voto]);
+            e.target.reset();
+            if (typeof loadAdminData === 'function') loadAdminData();
+            alert('Voto Fechado registrado com sucesso!');
+        });
+    }
 
     document.getElementById('materialForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -286,12 +309,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
 
-                const gradient = ctx.createLinearGradient(0, canvas.height - 450, 0, canvas.height);
-                gradient.addColorStop(0, 'rgba(0,0,0,0)');
-                gradient.addColorStop(0.3, 'rgba(0,0,0,0.6)');
-                gradient.addColorStop(1, 'rgba(0,0,0,0.95)');
+                const gradientHeight = 350;
+                const gradient = ctx.createLinearGradient(0, canvas.height - gradientHeight, 0, canvas.height);
+                gradient.addColorStop(0, 'rgba(0, 86, 128, 0)');
+                gradient.addColorStop(0.5, 'rgba(0, 86, 128, 0.7)');
+                gradient.addColorStop(1, 'rgba(0, 56, 90, 1)');
                 ctx.fillStyle = gradient;
-                ctx.fillRect(0, canvas.height - 450, canvas.width, 450);
+                ctx.fillRect(0, canvas.height - gradientHeight, canvas.width, gradientHeight);
 
                 const loadImg = (src) => new Promise((resolve) => {
                     const i = new Image();
@@ -306,16 +330,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const logoRostoJuntos = await loadImg('ROSTO-JUNTOS.png');
                 const logoTrairi = await loadImg('TRAIRI.png');
 
+                const bottomOffset = 180;
                 if (candidateOpt === 'both') {
                     if(logoYuri) {
                         const aspect = logoYuri.width / logoYuri.height;
                         const w = 420; const h = w / aspect;
-                        ctx.drawImage(logoYuri, 60, canvas.height - h - 80, w, h);
+                        ctx.drawImage(logoYuri, 60, canvas.height - h - bottomOffset, w, h);
                     }
                     
                     ctx.beginPath();
-                    ctx.moveTo(canvas.width / 2, canvas.height - 250);
-                    ctx.lineTo(canvas.width / 2, canvas.height - 50);
+                    ctx.moveTo(canvas.width / 2, canvas.height - bottomOffset - 170);
+                    ctx.lineTo(canvas.width / 2, canvas.height - bottomOffset + 30);
                     ctx.strokeStyle = 'rgba(255,255,255,0.4)';
                     ctx.lineWidth = 3;
                     ctx.stroke();
@@ -324,43 +349,31 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const aspect = logoCarlos.width / logoCarlos.height;
                         const w = 420; const h = w / aspect;
                         const xPos = (canvas.width / 2) + 60;
-                        ctx.drawImage(logoCarlos, xPos, canvas.height - h - 80, w, h);
+                        ctx.drawImage(logoCarlos, xPos, canvas.height - h - bottomOffset, w, h);
                     }
 
                 } else if (candidateOpt === 'yuri') {
                     if(logoYuri) {
                         const aspect = logoYuri.width / logoYuri.height;
                         const w = 700; const h = w / aspect;
-                        ctx.drawImage(logoYuri, canvas.width/2 - w/2, canvas.height - h - 80, w, h);
+                        ctx.drawImage(logoYuri, canvas.width/2 - w/2, canvas.height - h - bottomOffset, w, h);
                     }
 
                 } else if (candidateOpt === 'carlos') {
                     if(logoCarlos) {
                         const aspect = logoCarlos.width / logoCarlos.height;
                         const w = 700; const h = w / aspect;
-                        ctx.drawImage(logoCarlos, canvas.width/2 - w/2, canvas.height - h - 80, w, h);
+                        ctx.drawImage(logoCarlos, canvas.width/2 - w/2, canvas.height - h - bottomOffset, w, h);
                     }
                 }
 
-                // Draw the three extra logos at the top (Left, Center, Right)
-                const topLogoWidth = 280;
-                
-                if (logoMeuDeputado) {
-                    const aspect = logoMeuDeputado.width / logoMeuDeputado.height;
-                    const w = topLogoWidth; const h = w / aspect;
-                    ctx.drawImage(logoMeuDeputado, 40, 40, w, h);
-                }
+                // Draw TRAIRI logo at the top
+                const trairiLogoWidth = 200; // Tamanho reduzido
                 
                 if (logoTrairi) {
                     const aspect = logoTrairi.width / logoTrairi.height;
-                    const w = topLogoWidth; const h = w / aspect;
-                    ctx.drawImage(logoTrairi, (canvas.width - w) / 2, 40, w, h);
-                }
-                
-                if (logoRostoJuntos) {
-                    const aspect = logoRostoJuntos.width / logoRostoJuntos.height;
-                    const w = topLogoWidth; const h = w / aspect;
-                    ctx.drawImage(logoRostoJuntos, canvas.width - w - 40, 40, w, h);
+                    const w = trairiLogoWidth; const h = w / aspect;
+                    ctx.drawImage(logoTrairi, (canvas.width - w) / 2, 160, w, h);
                 }
 
                 const dataUrl = canvas.toDataURL('image/png');
