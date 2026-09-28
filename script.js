@@ -155,24 +155,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    document.getElementById('materialForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const user = getSessionUser();
-        const mat = {
-            user_id: user.id,
-            user_name: user.name,
-            tipo: document.getElementById('matTipo').value,
-            qtd: document.getElementById('matQtd').value,
-            endereco: document.getElementById('matEndereco').value,
-            data: new Date().toLocaleDateString(),
-            type: 'material'
-        };
-        
-        await supabaseClient.from('materials').insert([mat]);
-        e.target.reset();
-        alert('Pedido realizado com sucesso!');
-        loadCitizenHistory();
-    });
+    const matForm = document.getElementById('materialForm');
+    if (matForm) {
+        matForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = getSessionUser();
+            const mat = {
+                user_id: user.id,
+                user_name: user.name,
+                tipo: document.getElementById('matTipo').value,
+                qtd: document.getElementById('matQtd').value,
+                endereco: document.getElementById('matEndereco').value,
+                data: new Date().toLocaleDateString(),
+                type: 'material'
+            };
+            
+            await supabaseClient.from('materials').insert([mat]);
+            e.target.reset();
+            alert('Pedido realizado com sucesso!');
+            loadCitizenHistory();
+        });
+    }
     
     const mtgForm = document.getElementById('createMeetingForm');
     if (mtgForm) {
@@ -434,7 +437,8 @@ function checkAuthState() {
         renderLandingEvents();
     } else if (user.role === 'citizen') {
         document.getElementById('citizenView').classList.add('active');
-        document.getElementById('citName').textContent = user.name;
+        const citNameEl = document.getElementById('citName');
+        if (citNameEl) citNameEl.textContent = user.name;
         loadCitizenHistory();
     } else {
         document.getElementById('adminView').classList.add('active');
