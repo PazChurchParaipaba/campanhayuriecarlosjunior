@@ -273,151 +273,159 @@ document.addEventListener('DOMContentLoaded', async () => {
         let userPhotoDataUrl = null;
 
         const photoInput = document.getElementById(photoInputId);
+        const candidateSelect = document.getElementById(candidateSelectId);
+        const btnGenerateArt = document.getElementById(btnGenerateArtId);
+        
+        // Esconde o botão de gerar arte já que agora será automático
+        if (btnGenerateArt) btnGenerateArt.style.display = 'none';
+
+        const generateArt = async () => {
+            if (!userPhotoDataUrl) return;
+
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const candidateOpt = candidateSelect ? candidateSelect.value : 'both';
+
+            const img = new Image();
+            img.src = userPhotoDataUrl;
+            await new Promise(r => img.onload = r);
+
+            const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+            const x = (canvas.width / 2) - (img.width / 2) * scale;
+            const y = (canvas.height / 2) - (img.height / 2) * scale;
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+            const gradientHeight = 350;
+            const gradient = ctx.createLinearGradient(0, canvas.height - gradientHeight, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(0, 86, 128, 0)');
+            gradient.addColorStop(0.5, 'rgba(0, 86, 128, 0.7)');
+            gradient.addColorStop(1, 'rgba(0, 56, 90, 1)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, canvas.height - gradientHeight, canvas.width, gradientHeight);
+
+            const loadImg = (src) => new Promise((resolve) => {
+                const i = new Image();
+                i.onload = () => resolve(i);
+                i.onerror = () => resolve(null);
+                i.src = src;
+            });
+
+            const logoYuri = await loadImg('%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png');
+            const logoCarlos = await loadImg('LOGO CARLOS JUNIOR.png');
+            const logoMeuDeputado = await loadImg('MEU-DEPUTADO.png');
+            const logoRostoJuntos = await loadImg('ROSTO-JUNTOS.png');
+            const logoTrairi = await loadImg('TRAIRI.png');
+
+            const bottomOffset = 180;
+            if (candidateOpt === 'both') {
+                if(logoYuri) {
+                    const aspect = logoYuri.width / logoYuri.height;
+                    const w = 420; const h = w / aspect;
+                    ctx.drawImage(logoYuri, 60, canvas.height - h - bottomOffset, w, h);
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, canvas.height - bottomOffset - 170);
+                ctx.lineTo(canvas.width / 2, canvas.height - bottomOffset + 30);
+                ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                if(logoCarlos) {
+                    const aspect = logoCarlos.width / logoCarlos.height;
+                    const w = 420; const h = w / aspect;
+                    const xPos = (canvas.width / 2) + 60;
+                    ctx.drawImage(logoCarlos, xPos, canvas.height - h - bottomOffset, w, h);
+                }
+
+            } else if (candidateOpt === 'yuri') {
+                if(logoYuri) {
+                    const aspect = logoYuri.width / logoYuri.height;
+                    const w = 700; const h = w / aspect;
+                    ctx.drawImage(logoYuri, canvas.width/2 - w/2, canvas.height - h - bottomOffset, w, h);
+                }
+
+            } else if (candidateOpt === 'carlos') {
+                if(logoCarlos) {
+                    const aspect = logoCarlos.width / logoCarlos.height;
+                    const w = 700; const h = w / aspect;
+                    ctx.drawImage(logoCarlos, canvas.width/2 - w/2, canvas.height - h - bottomOffset, w, h);
+                }
+            }
+
+            // Draw TRAIRI logo at the top
+            const trairiLogoWidth = 200; // Tamanho reduzido
+            
+            if (logoTrairi) {
+                const aspect = logoTrairi.width / logoTrairi.height;
+                const w = trairiLogoWidth; const h = w / aspect;
+                ctx.drawImage(logoTrairi, (canvas.width - w) / 2, 160, w, h);
+            }
+
+            const dataUrl = canvas.toDataURL('image/png');
+            const previewArt = document.getElementById(previewArtId);
+            if (previewArt) {
+                previewArt.src = dataUrl;
+                previewArt.style.opacity = '1';
+                const pt = document.getElementById(previewTextId);
+                if(pt) pt.textContent = "Pronto! Clique abaixo para baixar.";
+            }
+            
+            const btnDownload = document.getElementById(btnDownloadId);
+            if (btnDownload) {
+                btnDownload.style.display = 'inline-flex';
+                btnDownload.onclick = async () => {
+                    // Tenta usar a Web Share API (resolve o problema no iPhone/iOS)
+                    try {
+                        const res = await fetch(dataUrl);
+                        const blob = await res.blob();
+                        const file = new File([blob], 'arte_campanha.png', { type: 'image/png' });
+                        
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                title: 'Arte Campanha',
+                                files: [file]
+                            });
+                            return; // Sucesso, sai da função
+                        }
+                    } catch (err) {
+                        console.log('Web Share não suportado ou ignorado, usando fallback', err);
+                    }
+
+                    // Fallback (Padrão para Android / Desktop)
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = 'arte_campanha.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                };
+            }
+        };
+
         if (photoInput) {
             photoInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
+                    const previewText = document.getElementById(previewTextId);
+                    if(previewText) previewText.textContent = "Gerando arte, aguarde...";
+                    
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         userPhotoDataUrl = event.target.result;
-                        const previewText = document.getElementById(previewTextId);
-                        if(previewText) previewText.textContent = "Foto carregada! Clique no botão para criar a arte.";
+                        generateArt();
                     };
                     reader.readAsDataURL(file);
                 }
             });
         }
-
-        const btnGenerateArt = document.getElementById(btnGenerateArtId);
-        if (btnGenerateArt) {
-            btnGenerateArt.addEventListener('click', async () => {
-                if (!userPhotoDataUrl) {
-                    alert("Por favor, selecione uma foto clicando na área pontilhada.");
-                    return;
-                }
-
-                const canvas = document.getElementById(canvasId);
-                const ctx = canvas.getContext('2d');
-                const candidateOpt = document.getElementById(candidateSelectId).value;
-
-                const img = new Image();
-                img.src = userPhotoDataUrl;
-                await new Promise(r => img.onload = r);
-
-                const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-                const x = (canvas.width / 2) - (img.width / 2) * scale;
-                const y = (canvas.height / 2) - (img.height / 2) * scale;
-                
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-
-                const gradientHeight = 350;
-                const gradient = ctx.createLinearGradient(0, canvas.height - gradientHeight, 0, canvas.height);
-                gradient.addColorStop(0, 'rgba(0, 86, 128, 0)');
-                gradient.addColorStop(0.5, 'rgba(0, 86, 128, 0.7)');
-                gradient.addColorStop(1, 'rgba(0, 56, 90, 1)');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, canvas.height - gradientHeight, canvas.width, gradientHeight);
-
-                const loadImg = (src) => new Promise((resolve) => {
-                    const i = new Image();
-                    i.onload = () => resolve(i);
-                    i.onerror = () => resolve(null);
-                    i.src = src;
-                });
-
-                const logoYuri = await loadImg('%23FECHADO%20COM%20YURI%20DO%20PARED%C3%83O.png');
-                const logoCarlos = await loadImg('LOGO CARLOS JUNIOR.png');
-                const logoMeuDeputado = await loadImg('MEU-DEPUTADO.png');
-                const logoRostoJuntos = await loadImg('ROSTO-JUNTOS.png');
-                const logoTrairi = await loadImg('TRAIRI.png');
-
-                const bottomOffset = 180;
-                if (candidateOpt === 'both') {
-                    if(logoYuri) {
-                        const aspect = logoYuri.width / logoYuri.height;
-                        const w = 420; const h = w / aspect;
-                        ctx.drawImage(logoYuri, 60, canvas.height - h - bottomOffset, w, h);
-                    }
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(canvas.width / 2, canvas.height - bottomOffset - 170);
-                    ctx.lineTo(canvas.width / 2, canvas.height - bottomOffset + 30);
-                    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-
-                    if(logoCarlos) {
-                        const aspect = logoCarlos.width / logoCarlos.height;
-                        const w = 420; const h = w / aspect;
-                        const xPos = (canvas.width / 2) + 60;
-                        ctx.drawImage(logoCarlos, xPos, canvas.height - h - bottomOffset, w, h);
-                    }
-
-                } else if (candidateOpt === 'yuri') {
-                    if(logoYuri) {
-                        const aspect = logoYuri.width / logoYuri.height;
-                        const w = 700; const h = w / aspect;
-                        ctx.drawImage(logoYuri, canvas.width/2 - w/2, canvas.height - h - bottomOffset, w, h);
-                    }
-
-                } else if (candidateOpt === 'carlos') {
-                    if(logoCarlos) {
-                        const aspect = logoCarlos.width / logoCarlos.height;
-                        const w = 700; const h = w / aspect;
-                        ctx.drawImage(logoCarlos, canvas.width/2 - w/2, canvas.height - h - bottomOffset, w, h);
-                    }
-                }
-
-                // Draw TRAIRI logo at the top
-                const trairiLogoWidth = 200; // Tamanho reduzido
-                
-                if (logoTrairi) {
-                    const aspect = logoTrairi.width / logoTrairi.height;
-                    const w = trairiLogoWidth; const h = w / aspect;
-                    ctx.drawImage(logoTrairi, (canvas.width - w) / 2, 160, w, h);
-                }
-
-                const dataUrl = canvas.toDataURL('image/png');
-                const previewArt = document.getElementById(previewArtId);
-                if (previewArt) {
-                    previewArt.src = dataUrl;
-                    previewArt.style.opacity = '1';
-                    const pt = document.getElementById(previewTextId);
-                    if(pt) pt.textContent = "Pronto! Clique abaixo para baixar.";
-                }
-                
-                const btnDownload = document.getElementById(btnDownloadId);
-                if (btnDownload) {
-                    btnDownload.style.display = 'inline-flex';
-                    btnDownload.onclick = async () => {
-                        // Tenta usar a Web Share API (resolve o problema no iPhone/iOS)
-                        try {
-                            const res = await fetch(dataUrl);
-                            const blob = await res.blob();
-                            const file = new File([blob], 'arte_campanha.png', { type: 'image/png' });
-                            
-                            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                                await navigator.share({
-                                    title: 'Arte Campanha',
-                                    files: [file]
-                                });
-                                return; // Sucesso, sai da função
-                            }
-                        } catch (err) {
-                            console.log('Web Share não suportado ou ignorado, usando fallback', err);
-                        }
-
-                        // Fallback (Padrão para Android / Desktop)
-                        const a = document.createElement('a');
-                        a.href = dataUrl;
-                        a.download = 'arte_campanha.png';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                    };
-                }
+        
+        if (candidateSelect) {
+            candidateSelect.addEventListener('change', () => {
+                if (userPhotoDataUrl) generateArt();
             });
         }
     }
