@@ -391,7 +391,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const btnDownload = document.getElementById(btnDownloadId);
                 if (btnDownload) {
                     btnDownload.style.display = 'inline-flex';
-                    btnDownload.onclick = () => {
+                    btnDownload.onclick = async () => {
+                        // Tenta usar a Web Share API (resolve o problema no iPhone/iOS)
+                        try {
+                            const res = await fetch(dataUrl);
+                            const blob = await res.blob();
+                            const file = new File([blob], 'arte_campanha.png', { type: 'image/png' });
+                            
+                            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                                await navigator.share({
+                                    title: 'Arte Campanha',
+                                    files: [file]
+                                });
+                                return; // Sucesso, sai da função
+                            }
+                        } catch (err) {
+                            console.log('Web Share não suportado ou ignorado, usando fallback', err);
+                        }
+
+                        // Fallback (Padrão para Android / Desktop)
                         const a = document.createElement('a');
                         a.href = dataUrl;
                         a.download = 'arte_campanha.png';
